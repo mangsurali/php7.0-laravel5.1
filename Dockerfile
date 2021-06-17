@@ -1,11 +1,10 @@
-FROM php:7-fpm
+FROM drewfle/laravel-dockerstead-minimal:latest
 
 # Install packages and remove default server definition
-RUN apk --no-cache add gnupg autoconf make g++ nginx supervisor zlib-dev libpng-dev icu-dev icu-libs librdkafka-dev git && \
-    rm /etc/nginx/conf.d/default.conf
+RUN apk --no-cache add gnupg autoconf make g++ nginx supervisor zlib-dev libpng-dev icu-dev icu-libs git unixodbc
 
 # Install PHP extensions
-RUN docker-php-ext-install bcmath gd exif pcntl intl
+#RUN docker-php-ext-install bcmath gd exif pcntl intl
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -18,8 +17,8 @@ RUN curl -O https://download.microsoft.com/download/e/4/e/e4e67866-dffd-428c-aac
 RUN curl -O https://download.microsoft.com/download/e/4/e/e4e67866-dffd-428c-aac7-8d28ddafb39b/msodbcsql17_17.7.2.1-1_amd64.sig
 RUN curl -O https://download.microsoft.com/download/e/4/e/e4e67866-dffd-428c-aac7-8d28ddafb39b/mssql-tools_17.7.1.1-1_amd64.sig
 RUN curl https://packages.microsoft.com/keys/microsoft.asc  | gpg --import -
-RUN gpg --verify msodbcsql17_17.7.2.1-1_amd64.sig msodbcsql17_17.7.2.1-1_amd64.apk
-RUN gpg --verify mssql-tools_17.7.1.1-1_amd64.sig mssql-tools_17.7.1.1-1_amd64.apk
+RUN gpg --verify msodbcsql17_17.0.1.1-1_amd64.sig msodbcsql17_17.0.1.1-1_amd64.apk
+RUN gpg --verify mssql-tools_17.0.1.1-1_amd64.sig mssql-tools_17.0.1.1-1_amd64.apk
 
 # Install the ODBC packages
 RUN apk add --allow-untrusted msodbcsql17_17.7.2.1-1_amd64.apk
@@ -41,11 +40,9 @@ RUN apk add --allow-untrusted unixodbc-dev
 # Install SQL Server Drivers
 RUN pecl channel-update pecl.php.net
 RUN pecl install sqlsrv
-RUN pecl install pdo_sqlsrv
-RUN pecl install rdkafka    
+RUN pecl install pdo_sqlsrv    
 RUN docker-php-ext-enable --ini-name 30-sqlsrv.ini sqlsrv
 RUN docker-php-ext-enable --ini-name 35-pdo_sqlsrv.ini pdo_sqlsrv
-RUN docker-php-ext-enable rdkafka
 
 # Install Xdebug
 RUN pecl install xdebug
